@@ -29,6 +29,7 @@ export let registers = new Map<string, number>([
     ['B', 0x00],
     ['C', 0x00],
     ['D', 0x00],
+    ['E', 0x00],
     ['H', 0x00],
     ['L', 0x00],
 ]);

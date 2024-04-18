@@ -4,6 +4,7 @@ export const validateRegister = (reg: string) => {
         reg === 'B' ||
         reg === 'C' ||
         reg === 'D' ||
+        reg === 'E' ||
         reg === 'H' ||
         reg === 'L'
     );
@@ -17,6 +18,10 @@ export const validateAddr = (addr: number) => {
     return addr >= 0x0000 && addr <= 0xffff;
 };
 
+export const validateRegPair = (reg: string) => {
+    return reg === 'B' || reg === 'D' || reg === 'H';
+};
+
 export const complement = (data: number) => {
     return 0xff - data;
 };
@@ -24,6 +29,12 @@ export const complement = (data: number) => {
 export const twosComplement = (data: number, flag: boolean[]) => {
     const comp = complement(data);
     const result = hexAdd(comp, 0x01, flag);
+    return result;
+};
+
+export const twosComplement16 = (data: number, flag: boolean[]) => {
+    const comp = 0xffff - data;
+    const result = hexAdd16(comp, 0x0001, flag, false);
     return result;
 };
 
@@ -69,6 +80,21 @@ export const hexSub = (valA: number, valB: number, flag: boolean[]) => {
     const lNibbleB = valB & 0x0f;
 
     flag[2] = lNibbleA - lNibbleB < 0;
+
+    return result;
+};
+
+export const hexAdd16 = (
+    valA: number,
+    valB: number,
+    flag: boolean[],
+    isDAD: boolean,
+) => {
+    let result = valA + valB;
+    if (result > 0xffff) {
+        if (isDAD) flag[0] = true;
+        result = result & 0xffff;
+    }
 
     return result;
 };
