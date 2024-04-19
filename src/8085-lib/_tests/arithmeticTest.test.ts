@@ -6,7 +6,7 @@ describe('ADD instruction', () => {
     let memory = new Uint8Array(64 * 1024).fill(0x00);
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         memory = new Uint8Array(64 * 1024).fill(0x00);
         registers = new Map<string, number>([
             ['A', 0x00],
@@ -94,7 +94,7 @@ describe('ADI instruction', () => {
     let registers: Map<string, number> = new Map();
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -154,7 +154,7 @@ describe('SUB instruction', () => {
     let memory = new Uint8Array(64 * 1024).fill(0x00);
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         memory = new Uint8Array(64 * 1024).fill(0x00);
         registers = new Map<string, number>([
             ['A', 0x00],
@@ -239,7 +239,7 @@ describe('SUI instruction', () => {
     let registers: Map<string, number> = new Map();
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -298,7 +298,7 @@ describe('INR instruction', () => {
     let memory = new Uint8Array(64 * 1024).fill(0x00);
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         memory = new Uint8Array(64 * 1024).fill(0x00);
         registers = new Map<string, number>([
             ['A', 0x00],
@@ -353,7 +353,7 @@ describe('DCR instruction', () => {
     let memory = new Uint8Array(64 * 1024).fill(0x00);
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         memory = new Uint8Array(64 * 1024).fill(0x00);
         registers = new Map<string, number>([
             ['A', 0x00],
@@ -471,7 +471,7 @@ describe('DAD instruction', () => {
     let registers: Map<string, number> = new Map();
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],

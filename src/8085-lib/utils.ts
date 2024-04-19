@@ -21,12 +21,20 @@ export const validateAddr = (addr: number) => {
     return addr >= 0x0000 && addr <= 0xffff;
 };
 
+export const validateAddrString = (addr: string) => {
+    const regex = /^[0-9A-F]{4}$/i;
+    return regex.test(addr);
+};
 export const validateRegPair = (reg: string) => {
     return reg === 'B' || reg === 'D' || reg === 'H';
 };
 
 export const validateImmediateData = (data: number) => {
     return data >= 0x00 && data <= 0xff;
+};
+export const validateDataString = (data: string) => {
+    const regex = /^[0-9A-F]{2}$/i;
+    return regex.test(data);
 };
 
 export const complement = (data: number) => {

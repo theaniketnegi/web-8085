@@ -27,7 +27,7 @@ describe('CMP instruction', () => {
     let memory = new Uint8Array(64 * 1024).fill(0x00);
 
     beforeEach(() => {
-        flags = new Array(6).fill(false);
+        flags = new Array(5).fill(false);
         memory = new Uint8Array(64 * 1024).fill(0x00);
         registers = new Map<string, number>([
             ['A', 0x00],

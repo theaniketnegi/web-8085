@@ -5,6 +5,7 @@ import {
     hexSub,
     twosComplement16,
     validateAddr,
+    validateDataString,
     validateImmediateData,
     validateMemRegister,
     validateRegister,
@@ -53,7 +54,7 @@ export const adi = (
     flag: boolean[],
 ) => {
     const hexData = convertToNum(data);
-    if (validateImmediateData(hexData) && data.length === 2)
+    if (validateImmediateData(hexData) && validateDataString(data))
         registers.set('A', hexAdd(hexData, registers.get('A')!, flag));
     else throw Error('Invalid data');
 };
@@ -100,7 +101,7 @@ export const sui = (
     flag: boolean[],
 ) => {
     const hexData = convertToNum(data);
-    if (validateImmediateData(hexData) && data.length === 2)
+    if (validateImmediateData(hexData) && validateDataString(data))
         registers.set('A', hexSub(registers.get('A')!, hexData, flag));
     else throw Error('Invalid data');
 };
@@ -182,7 +183,7 @@ export const dcr = (
 export const inx = (register: string, registers: Map<string, number>) => {
     if (register.length === 1) {
         if (validateRegPair(register)) {
-            const dummyFlag: boolean[] = new Array(8).fill(false);
+            const dummyFlag: boolean[] = new Array(5).fill(false);
             const pair =
                 register !== 'H'
                     ? String.fromCharCode(register.charCodeAt(0) + 1)
@@ -203,7 +204,7 @@ export const inx = (register: string, registers: Map<string, number>) => {
 export const dcx = (register: string, registers: Map<string, number>) => {
     if (register.length === 1) {
         if (validateRegPair(register)) {
-            const dummyFlag: boolean[] = new Array(8).fill(false);
+            const dummyFlag: boolean[] = new Array(5).fill(false);
             const pair =
                 register !== 'H'
                     ? String.fromCharCode(register.charCodeAt(0) + 1)

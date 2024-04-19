@@ -20,11 +20,11 @@
 //         value: false,
 //     },
 // ];
-export let flag = new Array(6).fill(false);
+export let flag = new Array(5).fill(false);
 
 export let memory = new Uint8Array(64 * 1024).fill(0x00);
 
-export let pc = 0x00;
+export let pc = '0000';
 
 export let registers = new Map<string, number>([
     ['A', 0x00],
