@@ -1,3 +1,6 @@
+export const convertToNum = (data: string) => {
+    return parseInt(data, 16);
+};
 export const validateRegister = (reg: string) => {
     return (
         reg === 'A' ||
@@ -20,6 +23,10 @@ export const validateAddr = (addr: number) => {
 
 export const validateRegPair = (reg: string) => {
     return reg === 'B' || reg === 'D' || reg === 'H';
+};
+
+export const validateImmediateData = (data: number) => {
+    return data >= 0x00 && data <= 0xff;
 };
 
 export const complement = (data: number) => {
@@ -60,7 +67,6 @@ export const hexAdd = (valA: number, valB: number, flag: boolean[]) => {
         count += num & 1;
         num >>= 1;
     }
-    if (valA === 0x80 || valB === 0x80) console.log(result);
     flag[0] = carry;
     flag[1] = !(count & 1);
     flag[2] = auxCarry;
@@ -97,4 +103,25 @@ export const hexAdd16 = (
     }
 
     return result;
+};
+
+export const compare = (valA: number, valB: number, flag: boolean[]) => {
+    if (valA == valB) {
+        flag[3] = true;
+    } else if (valA < valB) {
+        flag[0] = true;
+    } else {
+        flag[0] = false;
+        flag[3] = false;
+    }
+};
+
+export const swap = (
+    regA: string,
+    regB: string,
+    registers: Map<string, number>,
+) => {
+    registers.set(regA, registers.get(regA)! ^ registers.get(regB)!);
+    registers.set(regB, registers.get(regA)! ^ registers.get(regB)!);
+    registers.set(regA, registers.get(regA)! ^ registers.get(regB)!);
 };

@@ -1,9 +1,11 @@
 import {
+    convertToNum,
     hexAdd,
     hexAdd16,
     hexSub,
     twosComplement16,
     validateAddr,
+    validateImmediateData,
     validateMemRegister,
     validateRegister,
     validateRegPair,
@@ -18,17 +20,15 @@ export const add = (
     if (register.length === 1) {
         if (validateRegister(register) || validateMemRegister(register)) {
             if (register === 'M') {
-                const H = registers.get('H') as number;
-                const L = registers.get('L') as number;
+                const H = registers.get('H')!;
+                const L = registers.get('L')!;
+                if (!validateImmediateData(H) || !validateImmediateData(L))
+                    throw Error('Invalid address');
                 const addr = (H << 8) | L;
                 if (validateAddr(addr)) {
                     registers.set(
                         'A',
-                        hexAdd(
-                            registers.get('A') as number,
-                            memory[addr] as number,
-                            flag,
-                        ),
+                        hexAdd(registers.get('A')!, memory[addr]!, flag),
                     );
                 } else {
                     throw Error('Invalid address');
@@ -36,11 +36,7 @@ export const add = (
             } else {
                 registers.set(
                     'A',
-                    hexAdd(
-                        registers.get('A') as number,
-                        registers.get(register) as number,
-                        flag,
-                    ),
+                    hexAdd(registers.get('A')!, registers.get(register)!, flag),
                 );
             }
         } else {
@@ -52,12 +48,13 @@ export const add = (
 };
 
 export const adi = (
-    data: number,
+    data: string,
     registers: Map<string, number>,
     flag: boolean[],
 ) => {
-    if (data >= 0x00 && data <= 0xff)
-        registers.set('A', hexAdd(data, registers.get('A') as number, flag));
+    const hexData = convertToNum(data);
+    if (validateImmediateData(hexData) && data.length === 2)
+        registers.set('A', hexAdd(hexData, registers.get('A')!, flag));
     else throw Error('Invalid data');
 };
 
@@ -70,17 +67,15 @@ export const sub = (
     if (register.length === 1) {
         if (validateRegister(register) || validateMemRegister(register)) {
             if (register === 'M') {
-                const H = registers.get('H') as number;
-                const L = registers.get('L') as number;
+                const H = registers.get('H')!;
+                const L = registers.get('L')!;
+                if (!validateImmediateData(H) || !validateImmediateData(L))
+                    throw Error('Invalid address');
                 const addr = (H << 8) | L;
                 if (validateAddr(addr)) {
                     registers.set(
                         'A',
-                        hexSub(
-                            registers.get('A') as number,
-                            memory[addr] as number,
-                            flag,
-                        ),
+                        hexSub(registers.get('A')!, memory[addr], flag),
                     );
                 } else {
                     throw Error('Invalid address');
@@ -88,11 +83,7 @@ export const sub = (
             } else {
                 registers.set(
                     'A',
-                    hexSub(
-                        registers.get('A') as number,
-                        registers.get(register) as number,
-                        flag,
-                    ),
+                    hexSub(registers.get('A')!, registers.get(register)!, flag),
                 );
             }
         } else {
@@ -104,12 +95,13 @@ export const sub = (
 };
 
 export const sui = (
-    data: number,
+    data: string,
     registers: Map<string, number>,
     flag: boolean[],
 ) => {
-    if (data >= 0x00 && data <= 0xff)
-        registers.set('A', hexSub(registers.get('A') as number, data, flag));
+    const hexData = convertToNum(data);
+    if (validateImmediateData(hexData) && data.length === 2)
+        registers.set('A', hexSub(registers.get('A')!, hexData, flag));
     else throw Error('Invalid data');
 };
 
@@ -122,12 +114,14 @@ export const inr = (
     if (register.length === 1) {
         if (validateRegister(register) || validateMemRegister(register)) {
             if (register === 'M') {
-                const H = registers.get('H') as number;
-                const L = registers.get('L') as number;
+                const H = registers.get('H')!;
+                const L = registers.get('L')!;
+                if (!validateImmediateData(H) || !validateImmediateData(L))
+                    throw Error('Invalid address');
                 const addr = (H << 8) | L;
                 if (validateAddr(addr)) {
                     const initCY = flag[0];
-                    memory[addr] = hexAdd(memory[addr] as number, 0x01, flag);
+                    memory[addr] = hexAdd(memory[addr], 0x01, flag);
                     flag[0] = initCY;
                 } else {
                     throw Error('Invalid address');
@@ -136,7 +130,7 @@ export const inr = (
                 const initCY = flag[0];
                 registers.set(
                     register,
-                    hexAdd(registers.get(register) as number, 0x01, flag),
+                    hexAdd(registers.get(register)!, 0x01, flag),
                 );
                 flag[0] = initCY;
             }
@@ -157,12 +151,14 @@ export const dcr = (
     if (register.length === 1) {
         if (validateRegister(register) || validateMemRegister(register)) {
             if (register === 'M') {
-                const H = registers.get('H') as number;
-                const L = registers.get('L') as number;
+                const H = registers.get('H')!;
+                const L = registers.get('L')!;
+                if (!validateImmediateData(H) || !validateImmediateData(L))
+                    throw Error('Invalid address');
                 const addr = (H << 8) | L;
                 if (validateAddr(addr)) {
                     const initCY = flag[0];
-                    memory[addr] = hexSub(memory[addr] as number, 0x01, flag);
+                    memory[addr] = hexSub(memory[addr], 0x01, flag);
                     flag[0] = initCY;
                 } else {
                     throw Error('Invalid address');
@@ -171,7 +167,7 @@ export const dcr = (
                 const initCY = flag[0];
                 registers.set(
                     register,
-                    hexSub(registers.get(register) as number, 0x01, flag),
+                    hexSub(registers.get(register)!, 0x01, flag),
                 );
                 flag[0] = initCY;
             }
@@ -187,18 +183,15 @@ export const inx = (register: string, registers: Map<string, number>) => {
     if (register.length === 1) {
         if (validateRegPair(register)) {
             const dummyFlag: boolean[] = new Array(8).fill(false);
-            const num =
-                ((registers.get(register) as number) << 8) |
-                (registers.get(
-                    String.fromCharCode(register.charCodeAt(0) + 1),
-                ) as number);
+            const pair =
+                register !== 'H'
+                    ? String.fromCharCode(register.charCodeAt(0) + 1)
+                    : 'L';
+            const num = (registers.get(register)! << 8) | registers.get(pair)!;
 
             const result = hexAdd16(num, 0x0001, dummyFlag, false);
             registers.set(register, (result & 0xff00) >> 8);
-            registers.set(
-                String.fromCharCode(register.charCodeAt(0) + 1),
-                result & 0x00ff,
-            );
+            registers.set(pair, result & 0x00ff);
         } else {
             throw Error('Invalid register pair');
         }
@@ -215,9 +208,7 @@ export const dcx = (register: string, registers: Map<string, number>) => {
                 register !== 'H'
                     ? String.fromCharCode(register.charCodeAt(0) + 1)
                     : 'L';
-            const num =
-                ((registers.get(register) as number) << 8) |
-                (registers.get(pair) as number);
+            const num = (registers.get(register)! << 8) | registers.get(pair)!;
 
             const result = hexAdd16(
                 num,
@@ -247,13 +238,9 @@ export const dad = (
                 register !== 'H'
                     ? String.fromCharCode(register.charCodeAt(0) + 1)
                     : 'L';
-            const num =
-                ((registers.get(register) as number) << 8) |
-                (registers.get(pair) as number);
+            const num = (registers.get(register)! << 8) | registers.get(pair)!;
 
-            const numToAdd =
-                ((registers.get('H') as number) << 8) |
-                (registers.get('L') as number);
+            const numToAdd = (registers.get('H')! << 8) | registers.get('L')!;
 
             const result = hexAdd16(num, numToAdd, flag, true);
 

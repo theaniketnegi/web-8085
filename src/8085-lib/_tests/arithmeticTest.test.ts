@@ -107,27 +107,27 @@ describe('ADI instruction', () => {
 
     test('Adding two numbers', () => {
         registers.set('A', 0x07);
-        adi(0x08, registers, flags);
+        adi('08', registers, flags);
         expect(registers.get('A')).toBe(0x0f);
     });
 
     test('Adding two numbers with AC', () => {
         registers.set('A', 0x0f);
-        adi(0x48, registers, flags);
+        adi('48', registers, flags);
         expect(registers.get('A')).toBe(0x57);
         expect(flags[2]).toBeTruthy();
     });
 
     test('Adding two numbers with CY', () => {
         registers.set('A', 0xff);
-        adi(0xff, registers, flags);
+        adi('ff', registers, flags);
         expect(registers.get('A')).toBe(0xfe);
         expect(flags[0]).toBeTruthy();
     });
 
     test('Adding two numbers with AC,CY,Z,P', () => {
         registers.set('A', 0x01);
-        adi(0xff, registers, flags);
+        adi('ff', registers, flags);
         expect(registers.get('A')).toBe(0x00);
         expect(flags[0]).toBeTruthy();
         expect(flags[2]).toBeTruthy();
@@ -137,14 +137,14 @@ describe('ADI instruction', () => {
 
     test('Adding two numbers with P,S', () => {
         registers.set('A', 0x01);
-        adi(0x80, registers, flags);
+        adi('80', registers, flags);
         expect(registers.get('A')).toBe(0x81);
         expect(flags[1]).toBeTruthy();
         expect(flags[4]).toBeTruthy();
     });
 
     test('Throws error for non 8bit values', () => {
-        expect(() => adi(500, registers, flags)).toThrow('Invalid data');
+        expect(() => adi('300', registers, flags)).toThrow('Invalid data');
     });
 });
 
@@ -253,20 +253,20 @@ describe('SUI instruction', () => {
 
     test('Subtracting two numbers', () => {
         registers.set('A', 0x08);
-        sui(0x07, registers, flags);
+        sui('07', registers, flags);
         expect(registers.get('A')).toBe(0x01);
     });
 
     test('Subtracting two numbers with AC', () => {
         registers.set('A', 0x43);
-        sui(0x27, registers, flags);
+        sui('27', registers, flags);
         expect(registers.get('A')).toBe(0x1c);
         expect(flags[2]).toBeTruthy();
     });
 
     test('Subtracting two numbers with AC & CY', () => {
         registers.set('A', 0x23);
-        sui(0x47, registers, flags);
+        sui('47', registers, flags);
         expect(registers.get('A')).toBe(0xdc);
         expect(flags[0]).toBeTruthy();
         expect(flags[2]).toBeTruthy();
@@ -274,7 +274,7 @@ describe('SUI instruction', () => {
 
     test('Subtracting two numbers with Z,P', () => {
         registers.set('A', 0xff);
-        sui(0xff, registers, flags);
+        sui('ff', registers, flags);
         expect(registers.get('A')).toBe(0x00);
         expect(flags[1]).toBeTruthy();
         expect(flags[3]).toBeTruthy();
@@ -282,13 +282,13 @@ describe('SUI instruction', () => {
 
     test('Subtracting two numbers with S', () => {
         registers.set('A', 0x05);
-        sui(0x0a, registers, flags);
+        sui('0a', registers, flags);
         expect(registers.get('A')).toBe(0xfb);
         expect(flags[4]).toBeTruthy();
     });
 
     test('Throws error for non 8bit values', () => {
-        expect(() => sui(500, registers, flags)).toThrow('Invalid data');
+        expect(() => sui('500', registers, flags)).toThrow('Invalid data');
     });
 });
 
@@ -417,12 +417,12 @@ describe('INX instruction', () => {
         ]);
     });
 
-    test('Incrementing register pair BC', () => {
-        registers.set('B', 0x30);
-        registers.set('C', 0xff);
-        inx('B', registers);
-        expect(registers.get('B')).toBe(0x31);
-        expect(registers.get('C')).toBe(0x00);
+    test('Incrementing register pair HL', () => {
+        registers.set('H', 0x30);
+        registers.set('L', 0xff);
+        inx('H', registers);
+        expect(registers.get('H')).toBe(0x31);
+        expect(registers.get('L')).toBe(0x00);
     });
 
     test('Throws error for invalid register pair', () => {
