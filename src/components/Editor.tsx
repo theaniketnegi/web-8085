@@ -8,26 +8,63 @@ import { Label } from '@/components/ui/label';
 import CodeMirror from '@uiw/react-codemirror';
 import { toast } from 'sonner';
 import { execute } from '@/8085-lib/execute';
-import { validateAddr, validateAddrString } from '@/8085-lib/utils';
+import {
+    convertToNum,
+    validateAddr,
+    validateAddrString,
+    validateDataString,
+    validateImmediateData,
+} from '@/8085-lib/utils';
+import { init, set } from '@/8085-lib/init';
+import Results from './Results';
 
 const Editor = () => {
     const [code, setCode] = useState('');
     const [value, setValue] = useState('0000');
+    const [addr, setAddr] = useState('');
+    const [addrVal, setAddrVal] = useState('');
+
+    const [regs, setRegs] = useState<Map<string, number> | null>(null);
 
     const onExecute = () => {
-        if (code.trim() === '') {
-            toast.error('Code is required');
-            return;
+        const pc = value;
+        try {
+            if (code.trim() === '') {
+                toast.error('Code is required');
+                return;
+            }
+            if (!validateAddr(parseInt(pc, 16)) || !validateAddrString(pc)) {
+                toast.error('Invalid address');
+                return;
+            }
+            const { registers } = execute(code, pc);
+            setRegs(registers);
+            init();
+            toast.success('Executed successfully');
+        } catch (err) {
+            if (err instanceof Error) {
+                console.log(err);
+                toast.error(err.message);
+            }
         }
-        if (!validateAddr(parseInt(value, 16)) || !validateAddrString(value)) {
-            toast.error('Invalid address');
-            return;
-        }
-        execute(code, value);
     };
 
+    const onSetMemory = () => {
+        if (
+            validateAddr(convertToNum(addr)) &&
+            validateAddrString(addr) &&
+            validateDataString(addrVal) &&
+            validateImmediateData(convertToNum(addrVal))
+        ) {
+            set(convertToNum(addr), addrVal);
+            setAddr('');
+            setAddrVal('');
+        } else {
+            toast.error('Invalid address/data');
+        }
+    };
     return (
-        <div className='flex-1 mt-8 w-[50%] mx-auto flex space-x-72 p-5'>
+        <div className='flex-1 mt-8 w-[50%] mx-auto flex space-x-72 p-5 overflow-scroll-y'>
             <div className='flex flex-1 flex-col gap-6'>
                 <CodeMirror
                     value={code}
@@ -35,24 +72,53 @@ const Editor = () => {
                     height='400px'
                     className='shadow-lg'
                 />
-                <div className='w-[200px] self-end'>
-                    <Label className='text-md font-semibold'>
-                        Enter starting address
-                    </Label>
-                    <Input
-                        type='text'
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                    />
+                <div className='flex items-center justify-between p-4'>
+                    <div className='flex flex-col gap-2 w-[200px]'>
+                        <Label className='text-md font-semibold text-center'>
+                            Set values
+                        </Label>
+
+                        <Input
+                            type='text'
+                            pattern='[0-9A-Fa-f]{4}'
+                            placeholder='Address'
+                            value={addr}
+                            onChange={(e) => setAddr(e.target.value)}
+                        />
+                        <Input
+                            type='text'
+                            pattern='[0-9A-Fa-f]{2}'
+                            placeholder='Value'
+                            value={addrVal}
+                            onChange={(e) => setAddrVal(e.target.value)}
+                        />
+                        <Button onClick={onSetMemory}>Set</Button>
+                    </div>
+                    <div className='h-full text-center space-y-4'>
+                        <div>
+                            <Label className='text-md font-semibold'>
+                                Enter starting address
+                            </Label>
+                            <Input
+                                type='text'
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                pattern='[0-9A-Fa-f]{4}'
+                            />
+                        </div>
+
+                        <Button
+                            variant={'outline'}
+                            className='bg-green-500 text-white font-bold w-full'
+                            onClick={onExecute}
+                        >
+                            <Play className='h-4 w-4 mr-2' />
+                            Execute
+                        </Button>
+                    </div>
                 </div>
-                <Button
-                    variant={'outline'}
-                    className='bg-green-500 text-white font-bold self-end'
-                    onClick={onExecute}
-                >
-                    <Play className='h-4 w-4 mr-2' />
-                    Execute
-                </Button>
+
+                <Results registers={regs} />
             </div>
         </div>
     );

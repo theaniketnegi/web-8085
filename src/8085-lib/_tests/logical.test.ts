@@ -24,11 +24,11 @@ describe('CMA instruction', () => {
 describe('CMP instruction', () => {
     let flags: boolean[] = [];
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
         flags = new Array(5).fill(false);
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -64,7 +64,7 @@ describe('CMP instruction', () => {
     test('Value at address is less than value of A', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x50);
-        memory[0x2050] = 0x30;
+        memory[0x2050] = '30';
         registers.set('A', 0x40);
         cmp('M', registers, flags, memory);
         expect(flags[0]).toBeFalsy();
@@ -73,7 +73,7 @@ describe('CMP instruction', () => {
     test('Value at address is equal to value of A', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x50);
-        memory[0x2050] = 0x30;
+        memory[0x2050] = '30';
         registers.set('A', 0x30);
         cmp('M', registers, flags, memory);
         expect(flags[3]).toBeTruthy();
@@ -82,7 +82,7 @@ describe('CMP instruction', () => {
     test('Value at address is greater than value of A', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x50);
-        memory[0x2050] = 0x50;
+        memory[0x2050] = '50';
         registers.set('A', 0x30);
         cmp('M', registers, flags, memory);
         expect(flags[0]).toBeTruthy();
@@ -94,6 +94,23 @@ describe('CMP instruction', () => {
         );
         expect(() => cmp('AB', registers, flags, memory)).toThrow(
             'Invalid register',
+        );
+    });
+
+    test('Throws error for invalid data', () => {
+        registers.set('H', 0x20);
+        registers.set('L', 0x50);
+        memory[0x2050] = '5';
+        expect(() => cmp('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+        memory[0x2050] = '7FF';
+        expect(() => cmp('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+        memory[0x2050] = 'MOV';
+        expect(() => cmp('M', registers, flags, memory)).toThrow(
+            'Invalid data',
         );
     });
 });

@@ -133,3 +133,120 @@ export const swap = (
     registers.set(regB, registers.get(regA)! ^ registers.get(regB)!);
     registers.set(regA, registers.get(regA)! ^ registers.get(regB)!);
 };
+
+export const validateLine = (line: string) => {
+    const args = line.split(/[, ]/);
+
+    if (validateInstruction(args)) {
+        let flag = true;
+        if (args.length > 1) {
+            for (let i = 1; i < args.length; i++) {
+                switch (args[i].length) {
+                    case 1:
+                        flag = validateRegister(args[i]);
+                        break;
+                    case 2:
+                        flag =
+                            validateImmediateData(convertToNum(args[i])) &&
+                            validateDataString(args[i]);
+                        break;
+                    case 4:
+                        flag =
+                            validateAddr(convertToNum(args[i])) &&
+                            validateAddrString(args[i]);
+                        break;
+                    default:
+                        flag = false;
+                        break;
+                }
+                if (!flag) return false;
+            }
+        }
+        return true;
+    }
+    return false;
+};
+
+export const validateInstruction = (args: string[]) => {
+    if (args.length === 0 || args.length > 3) return false;
+    const oneArgs = ['HLT', 'CMA', 'XCHG'];
+    const twoArgs = [
+        'CMP',
+        'JMP',
+        'JC',
+        'JNC',
+        'JZ',
+        'JNZ',
+        'LDA',
+        'STA',
+        'LHLD',
+        'SHLD',
+        'STAX',
+        'ADD',
+        'ADI',
+        'SUB',
+        'SUI',
+        'INR',
+        'INX',
+        'DCR',
+        'DCX',
+        'DAD',
+    ];
+    const threeArgs = ['MOV', 'MVI', 'LXI'];
+
+    if (args.length === 1) return oneArgs.includes(args[0]);
+    if (args.length === 2) return twoArgs.includes(args[0]);
+    if (args.length === 3) return threeArgs.includes(args[0]);
+    return false;
+};
+
+export const updatePC = (pc: string, memory: string[]) => {
+    const line = memory[convertToNum(pc)];
+    const args = line.split(/[, ]/);
+    const size = instructionSize(args[0]);
+    const pcHex = convertToNum(pc);
+    let result = pcHex;
+    for (let i = 0; i < size; i++) {
+        result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
+        memory[result] = memory[pcHex];
+    }
+    pc = result.toString(16);
+    return pc;
+};
+
+export const instructionSize = (instruction: string) => {
+    const one = [
+        'MOV',
+        'ADD',
+        'INR',
+        'DCR',
+        'LDAX',
+        'STAX',
+        'HLT',
+        'SUB',
+        'XCHG',
+        'CMA',
+        'CMP',
+        'INX',
+        'DCX',
+        'DAD',
+    ];
+    const two = ['MVI', 'ADI', 'SUI'];
+    const three = [
+        'LXI',
+        'LDA',
+        'STA',
+        'LHLD',
+        'SHLD',
+        'JMP',
+        'JC',
+        'JNC',
+        'JZ',
+        'JNZ',
+    ];
+
+    if (one.includes(instruction)) return 1;
+    if (two.includes(instruction)) return 2;
+    if (three.includes(instruction)) return 3;
+    return -1;
+};

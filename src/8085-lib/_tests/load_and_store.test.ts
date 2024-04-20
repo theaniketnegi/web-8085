@@ -12,10 +12,10 @@ import {
 
 describe('MOV instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -35,7 +35,7 @@ describe('MOV instruction', () => {
     test('Moving value at M to A', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x50);
-        memory[0x2050] = 0xf0;
+        memory[0x2050] = 'f0';
         mov('A', 'M', registers, memory);
         expect(registers.get('A')).toBe(0xf0);
     });
@@ -44,7 +44,7 @@ describe('MOV instruction', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x50);
         mov('M', 'A', registers, memory);
-        expect(memory[0x2050]).toBe(0xf0);
+        expect(memory[0x2050]).toBe('f0');
     });
     test('Throws error for invalid register', () => {
         expect(() => mov('AB', 'M', registers, memory)).toThrow(
@@ -67,14 +67,26 @@ describe('MOV instruction', () => {
             'Invalid address',
         );
     });
+    test('Throws error for invalid data', () => {
+        registers.set('H', 0x30);
+        registers.set('L', 0xff);
+        memory[0x30ff] = 'MOV';
+
+        expect(() => mov('A', 'M', registers, memory)).toThrow('Invalid data');
+
+        memory[0x30ff] = 'FFFF';
+        expect(() => mov('A', 'M', registers, memory)).toThrow('Invalid data');
+        memory[0x30ff] = 'A';
+        expect(() => mov('A', 'M', registers, memory)).toThrow('Invalid data');
+    });
 });
 
 describe('MVI instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -94,7 +106,7 @@ describe('MVI instruction', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x50);
         mvi('M', 'f3', registers, memory);
-        expect(memory[0x2050]).toBe(0xf3);
+        expect(memory[0x2050]).toBe('f3');
     });
 
     test('Throws error for invalid immediate data', () => {
@@ -152,10 +164,10 @@ describe('LXI instruction', () => {
 
 describe('LDA instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -168,7 +180,7 @@ describe('LDA instruction', () => {
     });
 
     test('Load value at memory location to A', () => {
-        memory[0x2050] = 0x40;
+        memory[0x2050] = '40';
         lda('2050', registers, memory);
 
         expect(registers.get('A')).toBe(0x40);
@@ -179,14 +191,24 @@ describe('LDA instruction', () => {
         expect(() => lda('204', registers, memory)).toThrow('Invalid address');
         expect(() => lda('XCSD', registers, memory)).toThrow('Invalid address');
     });
+    test('Throws error for invalid data', () => {
+        memory[0x30ff] = 'MOV';
+
+        expect(() => lda('30ff', registers, memory)).toThrow('Invalid data');
+
+        memory[0x30ff] = 'FFFF';
+        expect(() => lda('30ff', registers, memory)).toThrow('Invalid data');
+        memory[0x30ff] = 'A';
+        expect(() => lda('30ff', registers, memory)).toThrow('Invalid data');
+    });
 });
 
 describe('STA instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -202,7 +224,7 @@ describe('STA instruction', () => {
         registers.set('A', 0x43);
         sta('2050', registers, memory);
 
-        expect(memory[0x2050]).toBe(0x43);
+        expect(memory[0x2050]).toBe('43');
     });
 
     test('Throws error for invalid address', () => {
@@ -214,10 +236,10 @@ describe('STA instruction', () => {
 
 describe('LHLD instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -229,8 +251,8 @@ describe('LHLD instruction', () => {
         ]);
     });
     test('Loading value at memory locations to HL', () => {
-        memory[0x2050] = 0x42;
-        memory[0x2051] = 0x31;
+        memory[0x2050] = '42';
+        memory[0x2051] = '31';
 
         lhld('2050', registers, memory);
 
@@ -245,14 +267,23 @@ describe('LHLD instruction', () => {
             'Invalid address',
         );
     });
+
+    test('Throws error for invalid data', () => {
+        memory[0x30ff] = 'MOV';
+        expect(() => lhld('30ff', registers, memory)).toThrow('Invalid data');
+        memory[0x30ff] = 'FFFF';
+        expect(() => lhld('30ff', registers, memory)).toThrow('Invalid data');
+        memory[0x30ff] = 'A';
+        expect(() => lhld('30ff', registers, memory)).toThrow('Invalid data');
+    });
 });
 
 describe('SHLD instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -269,8 +300,8 @@ describe('SHLD instruction', () => {
 
         shld('2050', registers, memory);
 
-        expect(memory[0x2050]).toBe(0x20);
-        expect(memory[0x2051]).toBe(0x50);
+        expect(memory[0x2050]).toBe('20');
+        expect(memory[0x2051]).toBe('50');
     });
 
     test('Throws error for invalid address', () => {
@@ -284,10 +315,10 @@ describe('SHLD instruction', () => {
 
 describe('STAX instruction', () => {
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -305,7 +336,7 @@ describe('STAX instruction', () => {
         registers.set('L', 0x50);
         stax('H', registers, memory);
 
-        expect(memory[0x2050]).toBe(0x50);
+        expect(memory[0x2050]).toBe('50');
     });
 
     test('Throws error for invalid register pair', () => {

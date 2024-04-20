@@ -3,11 +3,11 @@ import { add, adi, dad, dcr, dcx, inr, inx, sub, sui } from '../arithmetic';
 describe('ADD instruction', () => {
     let flags: boolean[] = [];
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('0000');
 
     beforeEach(() => {
         flags = new Array(5).fill(false);
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('0000');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -26,7 +26,7 @@ describe('ADD instruction', () => {
         expect(registers.get('A')).toBe(0x0f);
     });
     test('Adding two numbers [one from memory]', () => {
-        memory[0x2030] = 0x07;
+        memory[0x2030] = '07';
         registers.set('A', 0x08);
         registers.set('H', 0x20);
         registers.set('L', 0x30);
@@ -87,6 +87,35 @@ describe('ADD instruction', () => {
             'Invalid address',
         );
     });
+    test('Throws error for invalid data', () => {
+        memory[0x2030] = 'MOV';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => add('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '231';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => add('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '1';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => add('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = 'FF0A';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => add('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+    });
 });
 
 describe('ADI instruction', () => {
@@ -145,17 +174,19 @@ describe('ADI instruction', () => {
 
     test('Throws error for non 8bit values', () => {
         expect(() => adi('300', registers, flags)).toThrow('Invalid data');
+        expect(() => adi('A', registers, flags)).toThrow('Invalid data');
+        expect(() => adi('FBC', registers, flags)).toThrow('Invalid data');
     });
 });
 
 describe('SUB instruction', () => {
     let flags: boolean[] = [];
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('0000');
 
     beforeEach(() => {
         flags = new Array(5).fill(false);
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('0000');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -174,7 +205,7 @@ describe('SUB instruction', () => {
         expect(registers.get('A')).toBe(0x01);
     });
     test('Subtracting two numbers [one from memory]', () => {
-        memory[0x2030] = 0x07;
+        memory[0x2030] = '07';
         registers.set('A', 0x08);
         registers.set('H', 0x20);
         registers.set('L', 0x30);
@@ -230,6 +261,35 @@ describe('SUB instruction', () => {
         registers.set('L', 0x20);
         expect(() => sub('M', registers, flags, memory)).toThrow(
             'Invalid address',
+        );
+    });
+    test('Throws error for invalid data', () => {
+        memory[0x2030] = 'MOV';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => sub('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '231';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => sub('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '1';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => sub('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = 'FF0A';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => sub('M', registers, flags, memory)).toThrow(
+            'Invalid data',
         );
     });
 });
@@ -295,11 +355,11 @@ describe('SUI instruction', () => {
 describe('INR instruction', () => {
     let flags: boolean[] = [];
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
         flags = new Array(5).fill(false);
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -321,9 +381,9 @@ describe('INR instruction', () => {
     test('Increment memory address', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x40);
-        memory[0x2040] = 0xf0;
+        memory[0x2040] = 'f0';
         inr('M', registers, flags, memory);
-        expect(memory[0x2040]).toBe(0xf1);
+        expect(memory[0x2040]).toBe('f1');
         expect(flags[0]).toBeFalsy();
     });
 
@@ -345,16 +405,45 @@ describe('INR instruction', () => {
             'Invalid address',
         );
     });
+    test('Throws error for invalid data', () => {
+        memory[0x2030] = 'MOV';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '231';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '1';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = 'FF0A';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+    });
 });
 
 describe('DCR instruction', () => {
     let flags: boolean[] = [];
     let registers: Map<string, number> = new Map();
-    let memory = new Uint8Array(64 * 1024).fill(0x00);
+    let memory = new Array(64 * 1024).fill('00');
 
     beforeEach(() => {
         flags = new Array(5).fill(false);
-        memory = new Uint8Array(64 * 1024).fill(0x00);
+        memory = new Array(64 * 1024).fill('00');
         registers = new Map<string, number>([
             ['A', 0x00],
             ['B', 0x00],
@@ -376,9 +465,9 @@ describe('DCR instruction', () => {
     test('Decrement memory address', () => {
         registers.set('H', 0x20);
         registers.set('L', 0x40);
-        memory[0x2040] = 0x70;
+        memory[0x2040] = '70';
         dcr('M', registers, flags, memory);
-        expect(memory[0x2040]).toBe(0x6f);
+        expect(memory[0x2040]).toBe('6f');
         expect(flags[0]).toBeFalsy();
     });
 
@@ -398,6 +487,35 @@ describe('DCR instruction', () => {
         registers.set('L', 0x40);
         expect(() => dcr('M', registers, flags, memory)).toThrow(
             'Invalid address',
+        );
+    });
+    test('Throws error for invalid data', () => {
+        memory[0x2030] = 'MOV';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '231';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = '1';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
+        );
+
+        memory[0x2030] = 'FF0A';
+        registers.set('H', 0x20);
+        registers.set('L', 0x30);
+        expect(() => inr('M', registers, flags, memory)).toThrow(
+            'Invalid data',
         );
     });
 });

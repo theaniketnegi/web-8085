@@ -14,7 +14,7 @@ export const mov = (
     regA: string,
     regB: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     if (regA.length === 1 && regB.length === 1) {
         if (regA !== 'M' && regB !== 'M') {
@@ -32,7 +32,13 @@ export const mov = (
                     throw Error('Invalid address');
                 const addr = (registers.get('H')! << 8) | registers.get('L')!;
                 if (validateAddr(addr)) {
-                    registers.set(regA, memory[addr]);
+                    const valueAtAddr = convertToNum(memory[addr]);
+                    if (
+                        validateImmediateData(valueAtAddr) &&
+                        validateDataString(memory[addr])
+                    )
+                        registers.set(regA, valueAtAddr);
+                    else throw Error('Invalid data');
                 } else {
                     throw Error('Invalid address');
                 }
@@ -49,7 +55,7 @@ export const mov = (
                 const addr = (registers.get('H')! << 8) | registers.get('L')!;
 
                 if (validateAddr(addr)) {
-                    memory[addr] = registers.get(regB)!;
+                    memory[addr] = registers.get(regB)!.toString(16);
                 } else {
                     throw Error('Invalid address');
                 }
@@ -68,7 +74,7 @@ export const mvi = (
     reg: string,
     data: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     const hexData = convertToNum(data);
     if (validateImmediateData(hexData) && validateDataString(data)) {
@@ -80,7 +86,7 @@ export const mvi = (
                 throw Error('Invalid address');
             const addr = (registers.get('H')! << 8) | registers.get('L')!;
 
-            if (validateAddr(addr)) memory[addr] = hexData;
+            if (validateAddr(addr)) memory[addr] = hexData.toString(16);
             else throw Error('Invalid address');
         } else if (validateRegister(reg)) {
             registers.set(reg, hexData);
@@ -116,11 +122,19 @@ export const lxi = (
 export const lda = (
     addr: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     const hexAddr = convertToNum(addr);
     if (validateAddr(hexAddr) && validateAddrString(addr)) {
-        registers.set('A', memory[hexAddr]);
+        const valueAtAddr = convertToNum(memory[hexAddr]);
+        if (
+            validateImmediateData(valueAtAddr) &&
+            validateDataString(memory[hexAddr])
+        ) {
+            registers.set('A', valueAtAddr);
+        } else {
+            throw Error('Invalid data');
+        }
     } else {
         throw Error('Invalid address');
     }
@@ -129,11 +143,11 @@ export const lda = (
 export const sta = (
     addr: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     const hexAddr = convertToNum(addr);
     if (validateAddr(hexAddr) && validateAddrString(addr)) {
-        memory[hexAddr] = registers.get('A')!;
+        memory[hexAddr] = registers.get('A')!.toString(16);
     } else {
         throw Error('Invalid address');
     }
@@ -142,7 +156,7 @@ export const sta = (
 export const lhld = (
     addr: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     const hexAddr = convertToNum(addr);
     let nextAddr = 0;
@@ -151,15 +165,25 @@ export const lhld = (
     else throw Error('Invalid address');
 
     if (validateAddr(nextAddr)) {
-        registers.set('H', memory[nextAddr]);
-        registers.set('L', memory[hexAddr]);
+        const valueAtAddr = convertToNum(memory[hexAddr]);
+        const valueAtNextAddr = convertToNum(memory[nextAddr]);
+
+        if (
+            validateDataString(memory[hexAddr]) &&
+            validateDataString(memory[nextAddr]) &&
+            validateImmediateData(valueAtAddr) &&
+            validateImmediateData(valueAtNextAddr)
+        ) {
+            registers.set('H', valueAtNextAddr);
+            registers.set('L', valueAtAddr);
+        } else throw Error('Invalid data');
     } else throw Error('Invalid address');
 };
 
 export const shld = (
     addr: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     const hexAddr = convertToNum(addr);
     let nextAddr = 0;
@@ -168,15 +192,15 @@ export const shld = (
     else throw Error('Invalid address');
 
     if (validateAddr(nextAddr)) {
-        memory[nextAddr] = registers.get('H')!;
-        memory[hexAddr] = registers.get('L')!;
+        memory[nextAddr] = registers.get('H')!.toString(16);
+        memory[hexAddr] = registers.get('L')!.toString(16);
     } else throw Error('Invalid address');
 };
 
 export const stax = (
     reg: string,
     registers: Map<string, number>,
-    memory: Uint8Array,
+    memory: string[],
 ) => {
     if (validateRegPair(reg)) {
         const pair =
@@ -188,7 +212,7 @@ export const stax = (
             throw Error('Invalid address');
         const addr = (registers.get(reg)! << 8) | registers.get(pair)!;
         if (validateAddr(addr)) {
-            memory[addr] = registers.get('A')!;
+            memory[addr] = registers.get('A')!.toString(16);
         } else {
             throw Error('Invalid address');
         }
