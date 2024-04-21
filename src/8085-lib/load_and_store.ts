@@ -202,9 +202,8 @@ export const stax = (
     registers: Map<string, number>,
     memory: string[],
 ) => {
-    if (validateRegPair(reg)) {
-        const pair =
-            reg === 'H' ? 'L' : String.fromCharCode(reg.charCodeAt(0) + 1);
+    if (validateRegPair(reg) && reg !== 'H') {
+        const pair = String.fromCharCode(reg.charCodeAt(0) + 1);
         if (
             !validateImmediateData(registers.get(reg)!) ||
             !validateImmediateData(registers.get(pair)!)

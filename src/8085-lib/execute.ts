@@ -13,6 +13,7 @@ import {
     xchg,
 } from './load_and_store';
 import { cma, cmp } from './logical';
+import { opcodeKey, opcodes } from './opcodes';
 import {
     convertToNum,
     hexAdd16,
@@ -30,7 +31,7 @@ export const execute = (code: string, pc: string) => {
     codeArr.forEach((line) => {
         if (validateAddr(parseInt(pc, 16)) && validateAddrString(pc)) {
             if (validateLine(line)) {
-                memory[convertToNum(pc)] = line;
+                memory[convertToNum(pc)] = matchInstructions(line);
                 lastPc = pc;
                 pc = updatePC(pc, memory);
             } else {
@@ -53,6 +54,25 @@ export const execute = (code: string, pc: string) => {
         memory,
         flag,
     };
+};
+
+const matchInstructions = (line: string): string => {
+    const args: string[] = line.split(/[, ]/);
+    if (opcodes[args[0] as opcodeKey]) {
+        return opcodes[args[0] as opcodeKey].opcode;
+    } else if (opcodes[line as opcodeKey]) {
+        return opcodes[line as opcodeKey].opcode;
+    } else {
+        const pattern = /^([A-Z]+)\s[A-Z],\s*(\w+)$/;
+        const match = line.match(pattern);
+        if (match) {
+            const instruction = match[1];
+            if (opcodes[instruction as opcodeKey]) {
+                return opcodes[instruction as opcodeKey].opcode;
+            }
+        }
+    }
+    return '00';
 };
 
 const process = (
