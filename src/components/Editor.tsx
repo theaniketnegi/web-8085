@@ -25,6 +25,7 @@ const Editor = () => {
     const [addrVal, setAddrVal] = useState('');
 
     const [regs, setRegs] = useState<Map<string, number> | null>(null);
+    const [flags, setFlags] = useState<boolean[] | null>(null);
 
     const onExecute = () => {
         const pc = value;
@@ -37,9 +38,9 @@ const Editor = () => {
                 toast.error('Invalid address');
                 return;
             }
-            const { registers } = execute(code, pc);
+            const { registers, flag } = execute(code, pc);
             setRegs(registers);
-            init();
+            setFlags(flag);
             toast.success('Executed successfully');
         } catch (err) {
             if (err instanceof Error) {
@@ -57,6 +58,7 @@ const Editor = () => {
             validateImmediateData(convertToNum(addrVal))
         ) {
             set(convertToNum(addr), addrVal);
+            toast.success(`Set 0x${addrVal} at ${addr}`);
             setAddr('');
             setAddrVal('');
         } else {
@@ -66,13 +68,25 @@ const Editor = () => {
     return (
         <div className='flex-1 mt-8 w-[50%] mx-auto flex space-x-72 p-5 overflow-scroll-y'>
             <div className='flex flex-1 flex-col gap-6'>
+                <Button
+                    className='self-end'
+                    variant={'destructive'}
+                    onClick={() => {
+                        init();
+						setRegs(null);
+						setFlags(null);
+                        setCode('');
+                    }}
+                >
+                    Reset
+                </Button>
                 <CodeMirror
                     value={code}
                     onChange={(value) => setCode(value)}
                     height='400px'
                     className='shadow-lg'
                 />
-                <div className='flex items-center justify-between p-4'>
+                <div className='flex items-center justify-between py-4'>
                     <div className='flex flex-col gap-2 w-[200px]'>
                         <Label className='text-md font-semibold text-center'>
                             Set values
@@ -118,7 +132,7 @@ const Editor = () => {
                     </div>
                 </div>
 
-                <Results registers={regs} />
+                <Results registers={regs} flags={flags} />
             </div>
         </div>
     );

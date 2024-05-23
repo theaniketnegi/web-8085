@@ -54,4 +54,7 @@ export const init = () => {
 export const set = (addr: number, val: string) => {
     memory[addr] = val;
 };
+export const get = (addr: number) => {
+    return memory[addr];
+};
 //TOMORROWN: REWRITE THE WHOLE GODDAMN THING BECAUSE I DECIDED TO CHANGE THE DATATYPE OF A GODDAMN ARRAY
