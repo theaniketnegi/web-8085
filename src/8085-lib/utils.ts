@@ -135,8 +135,7 @@ export const swap = (
 };
 
 export const validateLine = (line: string) => {
-    const args = line.split(/[, ]/);
-
+    const args = line.split(/[, ]/).filter((item) => item !== '');
     if (validateInstruction(args)) {
         let flag = true;
         if (args.length > 1) {
@@ -164,6 +163,7 @@ export const validateLine = (line: string) => {
         }
         return true;
     }
+    console.log('COOKED');
     return false;
 };
 
@@ -200,53 +200,41 @@ export const validateInstruction = (args: string[]) => {
     return false;
 };
 
-export const updatePC = (pc: string, memory: string[]) => {
-    const line = memory[convertToNum(pc)];
-    const args = line.split(/[, ]/);
-    const size = instructionSize(args[0]);
+export const updatePC = (
+    pc: string,
+    memory: string[],
+    opcode: string,
+    data: string | undefined,
+    size: number,
+) => {
     const pcHex = convertToNum(pc);
     let result = pcHex;
-    for (let i = 0; i < size; i++) {
+
+    if (size === 1) {
+        memory[result] = opcode;
         result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
-        memory[result] = memory[pcHex];
+    } else if (size === 2) {
+        memory[result] = opcode;
+        result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
+        if (!data) throw Error('Missing data');
+        memory[result] = data;
+        result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
+    } else if (size === 3) {
+        memory[result] = opcode;
+        result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
+        if (
+            !data ||
+            !(validateAddr(parseInt(data, 16)) && validateAddrString(data))
+        ) {
+            throw Error('Missing data');
+        }
+        memory[result] = data.substring(2, 4);
+        result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
+        memory[result] = data.substring(0, 2);
+        result = hexAdd16(result, 0x0001, new Array(5).fill(false), false);
+    } else {
+        throw Error('Invalid instruction');
     }
     pc = result.toString(16);
     return pc;
-};
-
-export const instructionSize = (instruction: string) => {
-    const one = [
-        'MOV',
-        'ADD',
-        'INR',
-        'DCR',
-        'LDAX',
-        'STAX',
-        'HLT',
-        'SUB',
-        'XCHG',
-        'CMA',
-        'CMP',
-        'INX',
-        'DCX',
-        'DAD',
-    ];
-    const two = ['MVI', 'ADI', 'SUI'];
-    const three = [
-        'LXI',
-        'LDA',
-        'STA',
-        'LHLD',
-        'SHLD',
-        'JMP',
-        'JC',
-        'JNC',
-        'JZ',
-        'JNZ',
-    ];
-
-    if (one.includes(instruction)) return 1;
-    if (two.includes(instruction)) return 2;
-    if (three.includes(instruction)) return 3;
-    return -1;
 };
