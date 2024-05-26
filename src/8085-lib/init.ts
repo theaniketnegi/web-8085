@@ -1,30 +1,11 @@
-// export let flag =  [
-//     {
-//         label: 'C',
-//         value: false,
-//     },
-//     {
-//         label: 'P',
-//         value: false,
-//     },
-//     {
-//         label: 'AC',
-//         value: false,
-//     },
-//     {
-//         label: 'Z',
-//         value: false,
-//     },
-//     {
-//         label: 'S',
-//         value: false,
-//     },
-// ];
 export let flag: boolean[] = new Array(5).fill(false);
 
 export let memory: string[] = new Array(64 * 1024).fill('00');
 
 export let pc: string = '0000';
+
+export const defaultProgram =
+    'LDA 2050\nMOV B, A\nLDA 2051\nADD B\nSTA 3050\nHLT';
 
 export let registers: Map<string, number> = new Map<string, number>([
     ['A', 0x00],
@@ -57,4 +38,3 @@ export const set = (addr: number, val: string) => {
 export const get = (addr: number) => {
     return memory[addr];
 };
-//TOMORROWN: REWRITE THE WHOLE GODDAMN THING BECAUSE I DECIDED TO CHANGE THE DATATYPE OF A GODDAMN ARRAY

@@ -163,7 +163,6 @@ export const validateLine = (line: string) => {
         }
         return true;
     }
-    console.log('COOKED');
     return false;
 };
 

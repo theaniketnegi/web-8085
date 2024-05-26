@@ -15,12 +15,12 @@ import {
     validateDataString,
     validateImmediateData,
 } from '@/8085-lib/utils';
-import { init, set } from '@/8085-lib/init';
+import { defaultProgram, init, set } from '@/8085-lib/init';
 import Results from './Results';
 
 const Editor = () => {
-    const [code, setCode] = useState('');
-    const [value, setValue] = useState('0000');
+    const [code, setCode] = useState(defaultProgram);
+    const [value, setValue] = useState('2000');
     const [addr, setAddr] = useState('');
     const [addrVal, setAddrVal] = useState('');
 
@@ -44,7 +44,6 @@ const Editor = () => {
             toast.success('Executed successfully');
         } catch (err) {
             if (err instanceof Error) {
-                console.log(err);
                 toast.error(err.message);
             }
         }
@@ -73,8 +72,8 @@ const Editor = () => {
                     variant={'destructive'}
                     onClick={() => {
                         init();
-						setRegs(null);
-						setFlags(null);
+                        setRegs(null);
+                        setFlags(null);
                         setCode('');
                     }}
                 >

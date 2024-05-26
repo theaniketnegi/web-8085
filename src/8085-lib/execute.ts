@@ -39,7 +39,6 @@ export const execute = (code: string, pc: string) => {
         }
     });
 
-    console.log(memory);
     const end = convertToNum(pc);
 
     while (start < end) {
@@ -57,19 +56,21 @@ const matchInstructions = (
     line: string,
 ): { opcode: string; size: number; data?: string } => {
     const args: string[] = line.split(/[, ]/);
+    const formattedLine = line.replace(/,(\S)/g, ', $1');
     if (opcodes[args[0] as opcodeKey]) {
         return {
             opcode: opcodes[args[0] as opcodeKey].opcode,
             size: opcodes[args[0] as opcodeKey].size,
             data: args[1],
         };
-    } else if (opcodes[line as opcodeKey]) {
+    } else if (opcodes[formattedLine as opcodeKey]) {
+		console.log(formattedLine)
         return {
-            opcode: opcodes[line as opcodeKey].opcode,
-            size: opcodes[line as opcodeKey].size,
+            opcode: opcodes[formattedLine as opcodeKey].opcode,
+            size: opcodes[formattedLine as opcodeKey].size,
         };
     } else {
-        let str = line;
+        let str = formattedLine;
         str = str.trim();
         str = str.replace(',', ' , ');
         str = str.replace(/ +/g, ' ');
@@ -102,16 +103,15 @@ const process = (
 ) => {
     const { instruction, size } = instructions[opcode as instructionKey];
     const args = instruction.split(/[, ]/).filter((item) => item !== '');
-    console.log(args);
     const dummy = new Array(5).fill(false);
 
-	let data = ''; 
-	if(size==2){
-		data = memory[pc+1];
-	} else if (size==3) {
-		data += memory[pc+2];
-		data += memory[pc+1];
-	}
+    let data = '';
+    if (size == 2) {
+        data = memory[pc + 1];
+    } else if (size == 3) {
+        data += memory[pc + 2];
+        data += memory[pc + 1];
+    }
 
     if (args[0] === 'MOV') {
         mov(args[1], args[2], registers, memory);
