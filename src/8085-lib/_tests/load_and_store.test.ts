@@ -332,9 +332,9 @@ describe('STAX instruction', () => {
 
     test('Store value of A to memory address formed by register pair', () => {
         registers.set('A', 0x50);
-        registers.set('H', 0x20);
-        registers.set('L', 0x50);
-        stax('H', registers, memory);
+        registers.set('B', 0x20);
+        registers.set('C', 0x50);
+        stax('B', registers, memory);
 
         expect(memory[0x2050]).toBe('50');
     });
@@ -349,11 +349,11 @@ describe('STAX instruction', () => {
     });
 
     test('Throws error for invalid address', () => {
-        registers.set('H', 0x200);
-        registers.set('L', 0x300);
+        registers.set('B', 0x200);
+        registers.set('C', 0x300);
         registers.set('A', 0x30);
 
-        expect(() => stax('H', registers, memory)).toThrow('Invalid address');
+        expect(() => stax('B', registers, memory)).toThrow('Invalid address');
     });
 });
 
