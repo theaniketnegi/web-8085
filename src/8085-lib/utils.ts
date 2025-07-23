@@ -1,3 +1,5 @@
+import { Flag } from './init';
+
 export const convertToNum = (data: string) => {
     return parseInt(data, 16);
 };
@@ -75,25 +77,25 @@ export const hexAdd = (valA: number, valB: number, flag: boolean[]) => {
         count += num & 1;
         num >>= 1;
     }
-    flag[0] = carry;
-    flag[1] = !(count & 1);
-    flag[2] = auxCarry;
-    flag[3] = result === 0;
-    flag[4] = result >= 0x80 && result <= 0xff;
+    flag[Flag.Carry] = carry;
+    flag[Flag.Parity] = !(count & 1);
+    flag[Flag.AuxCarry] = auxCarry;
+    flag[Flag.Zero] = result === 0;
+    flag[Flag.Sign] = result >= 0x80 && result <= 0xff;
     return result;
 };
 
 export const hexSub = (valA: number, valB: number, flag: boolean[]) => {
     const result = hexAdd(valA, twosComplement(valB, flag), flag);
-    flag[0] = false;
-    flag[2] = false;
+    flag[Flag.Carry] = false;
+    flag[Flag.AuxCarry] = false;
 
-    flag[0] = valA - valB < 0;
+    flag[Flag.Carry] = valA - valB < 0;
 
     const lNibbleA = valA & 0x0f;
     const lNibbleB = valB & 0x0f;
 
-    flag[2] = lNibbleA - lNibbleB < 0;
+    flag[Flag.AuxCarry] = lNibbleA - lNibbleB < 0;
 
     return result;
 };
@@ -106,7 +108,7 @@ export const hexAdd16 = (
 ) => {
     let result = valA + valB;
     if (result > 0xffff) {
-        if (isDAD) flag[0] = true;
+        if (isDAD) flag[Flag.Carry] = true;
         result = result & 0xffff;
     }
 
@@ -115,12 +117,12 @@ export const hexAdd16 = (
 
 export const compare = (valA: number, valB: number, flag: boolean[]) => {
     if (valA == valB) {
-        flag[3] = true;
+        flag[Flag.Zero] = true;
     } else if (valA < valB) {
-        flag[0] = true;
+        flag[Flag.Carry] = true;
     } else {
-        flag[0] = false;
-        flag[3] = false;
+        flag[Flag.Carry] = false;
+        flag[Flag.Zero] = false;
     }
 };
 

@@ -1,3 +1,4 @@
+import { Flag } from './init';
 import {
     convertToNum,
     hexAdd,
@@ -142,11 +143,11 @@ export const inr = (
                         validateDataString(memory[addr]) &&
                         validateImmediateData(valueAtAddr)
                     ) {
-                        const initCY = flag[0];
+                        const initCY = flag[Flag.Carry];
                         memory[addr] = hexAdd(valueAtAddr, 0x01, flag).toString(
                             16,
                         );
-                        flag[0] = initCY;
+                        flag[Flag.Carry] = initCY;
                     } else {
                         throw Error('Invalid data');
                     }
@@ -154,12 +155,12 @@ export const inr = (
                     throw Error('Invalid address');
                 }
             } else {
-                const initCY = flag[0];
+                const initCY = flag[Flag.Carry];
                 registers.set(
                     register,
                     hexAdd(registers.get(register)!, 0x01, flag),
                 );
-                flag[0] = initCY;
+                flag[Flag.Carry] = initCY;
             }
         } else {
             throw Error('Invalid register');
@@ -189,11 +190,11 @@ export const dcr = (
                         validateDataString(memory[addr]) &&
                         validateImmediateData(valueAtAddr)
                     ) {
-                        const initCY = flag[0];
+                        const initCY = flag[Flag.Carry];
                         memory[addr] = hexSub(valueAtAddr, 0x01, flag).toString(
                             16,
                         );
-                        flag[0] = initCY;
+                        flag[Flag.Carry] = initCY;
                     } else {
                         throw Error('Invalid data');
                     }
@@ -201,12 +202,12 @@ export const dcr = (
                     throw Error('Invalid address');
                 }
             } else {
-                const initCY = flag[0];
+                const initCY = flag[Flag.Carry];
                 registers.set(
                     register,
                     hexSub(registers.get(register)!, 0x01, flag),
                 );
-                flag[0] = initCY;
+                flag[Flag.Carry] = initCY;
             }
         } else {
             throw Error('Invalid register');

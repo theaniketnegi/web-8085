@@ -1,3 +1,11 @@
+export enum Flag {
+	Carry,
+	Parity,
+	AuxCarry,
+	Zero,
+	Sign
+}
+
 export let flag: boolean[] = new Array(5).fill(false);
 
 export let memory: string[] = new Array(64 * 1024).fill('00');

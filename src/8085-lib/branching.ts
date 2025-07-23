@@ -1,4 +1,10 @@
-import { convertToNum, hexAdd16, validateAddr, validateAddrString } from './utils';
+import { Flag } from './init';
+import {
+    convertToNum,
+    hexAdd16,
+    validateAddr,
+    validateAddrString,
+} from './utils';
 
 const increaseAddr = (pc: string) => {
     const numPc = convertToNum(pc);
@@ -21,7 +27,7 @@ export const jmp = (addr: string) => {
 export const jnc = (addr: string, pc: string, flag: boolean[]) => {
     const hexAddr = convertToNum(addr);
     if (validateAddr(hexAddr) && validateAddrString(addr)) {
-        if (!flag[0]) {
+        if (!flag[Flag.Carry]) {
             return addr;
         } else return increaseAddr(pc);
     } else throw Error('Invalid address');
@@ -30,7 +36,7 @@ export const jnc = (addr: string, pc: string, flag: boolean[]) => {
 export const jc = (addr: string, pc: string, flag: boolean[]) => {
     const hexAddr = convertToNum(addr);
     if (validateAddr(hexAddr) && validateAddrString(addr)) {
-        if (flag[0]) {
+        if (flag[Flag.Carry]) {
             return addr;
         } else return increaseAddr(pc);
     } else throw Error('Invalid address');
@@ -39,7 +45,7 @@ export const jc = (addr: string, pc: string, flag: boolean[]) => {
 export const jnz = (addr: string, pc: string, flag: boolean[]) => {
     const hexAddr = convertToNum(addr);
     if (validateAddr(hexAddr) && validateAddrString(addr)) {
-        if (!flag[3]) {
+        if (!flag[Flag.Zero]) {
             return addr;
         } else return increaseAddr(pc);
     } else throw Error('Invalid address');
@@ -48,7 +54,7 @@ export const jnz = (addr: string, pc: string, flag: boolean[]) => {
 export const jz = (addr: string, pc: string, flag: boolean[]) => {
     const hexAddr = convertToNum(addr);
     if (validateAddr(hexAddr) && validateAddrString(addr)) {
-        if (flag[3]) {
+        if (flag[Flag.Zero]) {
             return addr;
         } else return increaseAddr(pc);
     } else throw Error('Invalid address');
