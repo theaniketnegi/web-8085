@@ -1,4 +1,5 @@
 import { Flag } from './init';
+import { opcodes } from './opcodes';
 
 export const convertToNum = (data: string) => {
     return parseInt(data, 16);
@@ -136,12 +137,15 @@ export const swap = (
     registers.set(regA, registers.get(regA)! ^ registers.get(regB)!);
 };
 
-export const validateLine = (line: string) => {
+export const validateLine = (line: string, labelMap: Map<string, string>) => {
     const args = line.split(/[, ]/).filter((item) => item !== '');
     if (validateInstruction(args)) {
         let flag = true;
         if (args.length > 1) {
             for (let i = 1; i < args.length; i++) {
+                if (labelMap.has(args[i].toUpperCase())) {
+                    continue;
+                }
                 switch (args[i].length) {
                     case 1:
                         flag = validateRegister(args[i]);
@@ -238,4 +242,11 @@ export const updatePC = (
     }
     pc = result.toString(16);
     return pc;
+};
+
+export const isBranching = (opcode: string): boolean => {
+    const opcodeArray = ['JZ', 'JNC', 'JC', 'JNZ', 'JMP'].map(
+        (instr) => opcodes[instr].opcode,
+    );
+    return opcodeArray.includes(opcode.toUpperCase());
 };

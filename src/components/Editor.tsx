@@ -38,7 +38,7 @@ const Editor = () => {
                 toast.error('Invalid address');
                 return;
             }
-            const { registers, flag } = execute(code, pc);
+            const { registers, flag } = execute(code.toUpperCase(), pc);
             setRegs(registers);
             setFlags(flag);
             toast.success('Executed successfully');

@@ -17,6 +17,7 @@ import { instructionKey, instructions, opcodeKey, opcodes } from './opcodes';
 import {
     convertToNum,
     hexAdd16,
+    isBranching,
     updatePC,
     validateAddr,
     validateAddrString,
@@ -26,25 +27,106 @@ import {
 export const execute = (code: string, pc: string) => {
     const codeArr = code.trim().split('\n');
     let start = convertToNum(pc);
-    codeArr.forEach((line) => {
+
+    const labelMap = new Map<string, string>();
+    let currentPc = start;
+
+    if (!validateAddr(parseInt(pc, 16)) || !validateAddrString(pc)) {
+        throw Error('Invalid value at PC');
+    }
+
+    const cleanCode: { instruction: string; line: string }[] = [];
+
+    for (const line of codeArr) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+
+        let instruction = trimmedLine;
+        if (trimmedLine.includes(':')) {
+            const parts = trimmedLine.split(':', 2);
+            const label = parts[0];
+            instruction = parts[1];
+
+            if (/\s/.test(label) || label == '') {
+                throw Error(`Invalid label format: "${label}"`);
+            }
+
+            if (!Number.isNaN(Number(label))) {
+                throw Error(`A number cannot be set as a label: ${label}`);
+            }
+            if (opcodes[label.toUpperCase()]) {
+                throw Error(
+                    `Label cannot be an instruction mnemonic: ${label}`,
+                );
+            }
+
+            if (labelMap.has(label.toUpperCase())) {
+                throw Error(`Duplicate label detected: ${label}`);
+            }
+
+            labelMap.set(
+                label.toUpperCase(),
+                currentPc.toString(16).padStart(4, '0'),
+            );
+        }
+
+        if (instruction) {
+            try {
+                const { size } = matchInstructions(instruction);
+                currentPc = hexAdd16(currentPc, size, [], false);
+            } catch (e) {
+                if (e instanceof Error) {
+                    throw new Error(
+                        `Syntax error on line "${line}": ${e.message}`,
+                    );
+                }
+                throw e;
+            }
+        }
+
+        cleanCode.push({ instruction, line });
+    }
+
+    for (const { instruction, line } of cleanCode) {
+        if (!instruction) continue;
         if (validateAddr(parseInt(pc, 16)) && validateAddrString(pc)) {
-            if (validateLine(line)) {
-                const { opcode, size, data } = matchInstructions(line);
-                pc = updatePC(pc, memory, opcode, data, size);
+            if (validateLine(instruction, labelMap)) {
+                const { opcode, size, data } = matchInstructions(instruction);
+                let resolvedData = data;
+                if (
+                    resolvedData &&
+                    Number.isNaN(Number(resolvedData)) &&
+                    isBranching(opcode)
+                ) {
+                    if (labelMap.has(resolvedData.toUpperCase())) {
+                        resolvedData = labelMap.get(resolvedData.toUpperCase());
+                    } else {
+                        throw Error(
+                            `Invalid data: "${data}". Expected a numeric value. Error on line: "${line}"`,
+                        );
+                    }
+                }
+                pc = updatePC(pc, memory, opcode, resolvedData, size);
             } else {
                 throw Error('Invalid instruction');
             }
         } else {
             throw Error('Invalid value at PC');
         }
-    });
+    }
 
     const end = convertToNum(pc);
 
-    while (start < end) {
+    let iterations = 0;
+    const maxIterations = 500000;
+    while (start < end && iterations < maxIterations) {
         start = process(memory[start], start, memory, flag, registers);
+        iterations++;
     }
 
+    if (iterations >= maxIterations) {
+        throw Error('Execution timed out. Possible infinite loop detected');
+    }
     return {
         registers,
         memory,
@@ -55,40 +137,38 @@ export const execute = (code: string, pc: string) => {
 const matchInstructions = (
     line: string,
 ): { opcode: string; size: number; data?: string } => {
-    const args: string[] = line.split(/[, ]/);
-    const formattedLine = line.replace(/,(\S)/g, ', $1');
-    if (opcodes[args[0] as opcodeKey]) {
-        return {
-            opcode: opcodes[args[0] as opcodeKey].opcode,
-            size: opcodes[args[0] as opcodeKey].size,
-            data: args[1],
-        };
-    } else if (opcodes[formattedLine as opcodeKey]) {
-		console.log(formattedLine)
+    const formattedLine = line
+        .replace(/,(\S)/g, ', $1')
+        .replace(/ +/g, ' ')
+        .trim();
+
+    if (opcodes[formattedLine]) {
         return {
             opcode: opcodes[formattedLine as opcodeKey].opcode,
             size: opcodes[formattedLine as opcodeKey].size,
         };
-    } else {
-        let str = formattedLine;
-        str = str.trim();
-        str = str.replace(',', ' , ');
-        str = str.replace(/ +/g, ' ');
-        const index = str.lastIndexOf(' ');
+    }
 
-        const mnemonic = str.substring(0, index - 2);
-        const data = str.substring(index + 1);
+    const parts = formattedLine.split(/, | /).filter((ch) => ch);
 
-        console.log([mnemonic, data]);
-        if (mnemonic) {
-            const instruction = mnemonic;
-            if (opcodes[instruction as opcodeKey]) {
-                return {
-                    opcode: opcodes[instruction as opcodeKey].opcode,
-                    size: opcodes[instruction as opcodeKey].size,
-                    data,
-                };
-            }
+    if (parts.length >= 2) {
+        let key = `${parts[0]} ${parts[1]}`;
+        if (opcodes[key]) {
+            return {
+                opcode: opcodes[key].opcode,
+                size: opcodes[key].size,
+                data: parts[2],
+            };
+        }
+
+        key = parts[0];
+        if (opcodes[key]) {
+            if (parts.length !== 2) throw Error(`Invalid arguments for ${key}`);
+            return {
+                opcode: opcodes[key].opcode,
+                size: opcodes[key].size,
+                data: parts[1],
+            };
         }
     }
     return { opcode: '00', size: 0 };
