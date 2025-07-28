@@ -108,7 +108,7 @@ export const execute = (code: string, pc: string) => {
                 }
                 pc = updatePC(pc, memory, opcode, resolvedData, size);
             } else {
-                throw Error('Invalid instruction');
+                throw Error(`Invalid instruction: ${instruction}`);
             }
         } else {
             throw Error('Invalid value at PC');

@@ -12,7 +12,8 @@ export const validateRegister = (reg: string) => {
         reg === 'D' ||
         reg === 'E' ||
         reg === 'H' ||
-        reg === 'L'
+        reg === 'L' ||
+        reg == 'M'
     );
 };
 
